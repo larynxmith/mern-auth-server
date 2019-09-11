@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: false}))
 app.use(express.json({ limit: '10mb' }))
 
 //Catch-All route
+app.use('/auth', require('./controllers/auth'))
 app.get('*', (req, res) => {
     res.status(404).send({ message: 'Not Found' })
 })
