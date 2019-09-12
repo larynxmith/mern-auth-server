@@ -40,7 +40,7 @@ userSchema.set('toJSON', {
 
 // Create helper function to compare password hashes
 userSchema.methods.isAuthenticated = function(typedPassword) {
-    return bcrypt.compare(typedPassword, this.password)
+    return bcrypt.compareSync(typedPassword, this.password)
 }
 
 module.exports = mongoose.model('User', userSchema)

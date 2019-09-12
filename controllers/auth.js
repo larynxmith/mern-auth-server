@@ -3,11 +3,33 @@ let db = require('../models')
 require('dotenv').config()
 let jwt = require('jsonwebtoken')
 
-
+//POST /auth/login (find/validate use; send token)
 router.post('/login', (req, res) => {
-    res.send('STUB - POST /auth/login')
+    // find user by email in db
+    db.User.findOne({ email: req.body.email })
+    .then(user => {
+        // check for user and password
+        if(!user || !user.password) {
+            return res.status(404).send({ message: 'User Not Found'})
+        }
+        // Yes, user exists; check password
+        if(!user.isAuthenticated(req.body.password)) {
+            //Invalid credentials: wrong password
+            return res.status(406).send({ message: 'Not Acceptable: Invalid Credentials'})
+        }
+        let token = jwt.sign(user.toJSON(), process.env.JWT_SECRET, {
+            expiresIn: 60 *60 * 8 //8 hours in seconds
+        })
+        res.send({ token })
+    })
+    .catch(err => {
+        // db/db setup issue, or typo
+        console.log('Error in POST /auth/login', err)
+        res.status(503).send({ message: 'Oops, something on our side is off. Or you made a typo. Good Luck.' })
+    })
 })
 
+// POST /auth/signup(vreate user, generate token)
 router.post('/signup', (req, res) => {
     db.User.findOne({ email: req.body.email })
     .then(user => {
@@ -20,7 +42,7 @@ router.post('/signup', (req, res) => {
         .then(newUser => {
             // user created, let's assign them a token
             let token = jwt.sign(newUser.toJSON(), process.env.JWT_SECRET, {
-                expiresIn: 60 * 60 //(in seconds)
+                expiresIn: 60 * 60 * 8// (8 hours in seconds)
             })
             res.send({ token })
         })
