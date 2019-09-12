@@ -1,6 +1,8 @@
 //required
+require('dotenv').config()
 let cors = require('cors')
 let express = require('express')
+let expressJwt = require('express-jwt')
 let morgan = require('morgan')
 let rowdyLogger = require('rowdy-logger')
 
@@ -16,7 +18,15 @@ app.use(express.json({ limit: '10mb' }))
 
 
 // routes
-app.use('/auth', require('./controllers/auth'))
+app.use('/auth', expressJwt({
+    secret: process.env.JWT_SECRET
+}).unless({
+    path: [
+        { url: '/auth/login', methods: ['POST']},
+        { url: '/auth/signup', methods: ['POST']}
+    ]
+}), require('./controllers/auth'))
+
 //Catch-All route
 app.get('*', (req, res) => {
     res.status(404).send({ message: 'Not Found' })
